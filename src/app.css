@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@layer base {
+	html,
+	body {
+		@apply bg-[#282828] text-[#FFFFFF]; /* tailwind 색상으로 통일 */
+		height: 100%;
+	}
+}
