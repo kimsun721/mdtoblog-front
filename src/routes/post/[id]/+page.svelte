@@ -20,12 +20,13 @@
 	}
 </script>
 
-<div class="mx-auto max-w-3xl p-6">
-	<h1 class="mb-5 text-4xl font-bold">{data.post.title}</h1>
-	<p class="mb-10 text-gray-400">
+<div class="mx-auto mt-6 max-w-4xl rounded-lg bg-[#FFFFFF] p-6 font-sans shadow-md">
+	<h1 class="mb-4 text-4xl font-extrabold text-[#212529]">{data.post.title}</h1>
+	<p class="mb-8 text-sm text-[#868E96]">
 		{data.post.user.username} · {timeAgo(data.post.updated_at)}
+		<span class="ml-4">조회수: {data.post.views}</span>
 	</p>
-	<div class="prose max-w-none prose-invert">
+	<div class="prose max-w-none text-[#212529]">
 		{@html marked(data.post.content)}
 	</div>
 </div>

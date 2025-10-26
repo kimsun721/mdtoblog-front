@@ -5,7 +5,7 @@
 @layer base {
 	html,
 	body {
-		@apply bg-[#282828] text-[#FFFFFF]; /* tailwind 색상으로 통일 */
+		@apply bg-[#F0F2F5]; /* tailwind 색상으로 통일 */
 		height: 100%;
 	}
 }
