@@ -1,6 +1,8 @@
+import { PUBLIC_API_URL } from '$env/static/public';
+
 export const load = async ({ fetch }: any) => {
 	try {
-		let res = await fetch('http://localhost:3000/api/auth/refresh', {
+		let res = await fetch(`${PUBLIC_API_URL}/auth/refresh`, {
 			method: 'POST',
 			credentials: 'include'
 		});
