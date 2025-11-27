@@ -9,12 +9,10 @@
 
 	export let data: { accessToken: string | null };
 
-	// 초기 서버 데이터 반영
 	$: if (data.accessToken) {
 		accessToken.set(data.accessToken);
 	}
 
-	// 클라이언트에서 refresh
 	onMount(async () => {
 		try {
 			const res = await fetch(`${PUBLIC_API_URL}/auth/refresh`, {
@@ -26,6 +24,8 @@
 			if (json?.data) {
 				accessToken.set(json.data);
 			}
+
+			console.log(json.data);
 		} catch (e) {
 			console.error('refresh fail', e);
 		}

@@ -27,13 +27,24 @@
 			alert('로그아웃 중 오류 발생');
 		}
 	};
-	onMount(() => {
-		if ($accessToken) {
+	$: if ($accessToken) {
+		try {
 			const payload = JSON.parse(atob($accessToken.split('.')[1]));
-			const githubId = payload.githubId;
 			userId = payload.userId;
-			profileImage = `https://avatars.githubusercontent.com/u/${githubId}`;
+			profileImage = `https://avatars.githubusercontent.com/u/${payload.githubId}`;
+		} catch (e) {
+			console.error('JWT 파싱 실패', e);
 		}
+	}
+
+	onMount(() => {
+		// console.log($accessToken);
+		// if ($accessToken) {
+		// 	const payload = JSON.parse(atob($accessToken.split('.')[1]));
+		// 	const githubId = payload.githubId;
+		// 	userId = payload.userId;
+		// 	profileImage = `https://avatars.githubusercontent.com/u/${githubId}`;
+		// }
 		const handleClickOutside = (e: MouseEvent) => {
 			if (!(e.target as HTMLElement).closest('#profile-dropdown')) {
 				dropdownOpen = false;
