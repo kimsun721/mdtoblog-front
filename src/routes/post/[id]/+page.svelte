@@ -11,6 +11,7 @@
 	import { goto } from '$app/navigation';
 
 	let post: Post | null = null;
+	console.log($accessToken);
 
 	async function loadPost() {
 		const postId = $page.params.id;
@@ -28,17 +29,16 @@
 	onMount(loadPost);
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 px-4 py-12">
+<div class="min-h-screen bg-gray-50 px-4 py-8">
 	{#if post}
 		<article class="mx-auto max-w-4xl">
 			<!-- 메인 게시글 카드 -->
-			<div
-				class="overflow-hidden rounded-3xl bg-white shadow-xl shadow-black/5 transition-shadow duration-300 hover:shadow-2xl hover:shadow-black/10"
-			>
-				<div class="p-10 md:p-14">
+			<div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+				<div class="p-6 md:p-10">
 					<PostHeader {post} on:navigate={(e) => goto(e.detail.url)} />
 					<PostContent content={post.content} />
-					<div class="flex justify-center pt-6">
+
+					<div class="flex justify-center border-t border-gray-100 pt-6">
 						<LikeButton
 							liked={post.liked}
 							likeCount={post.likeCount}
@@ -59,17 +59,18 @@
 						/>
 					</div>
 				</div>
+
+				<!-- 댓글 섹션 -->
+				<CommentSection {post} {refreshPost} />
 			</div>
-			<!-- 댓글 섹션 -->
-			<CommentSection {post} {refreshPost} />
 		</article>
 	{:else}
 		<div class="flex min-h-[60vh] items-center justify-center">
 			<div class="text-center">
 				<div
-					class="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-gray-900"
+					class="mb-3 inline-block h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-gray-900"
 				></div>
-				<p class="text-lg text-gray-500">로딩 중...</p>
+				<p class="text-sm text-gray-500">로딩 중...</p>
 			</div>
 		</div>
 	{/if}

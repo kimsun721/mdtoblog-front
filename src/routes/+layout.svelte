@@ -24,8 +24,6 @@
 			if (json?.data) {
 				accessToken.set(json.data);
 			}
-
-			console.log(json.data);
 		} catch (e) {
 			console.error('refresh fail', e);
 		}

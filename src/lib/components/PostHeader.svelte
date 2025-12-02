@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { toKrDate } from '$lib/toKrDate';
 	import type { Post } from '$lib/types/post';
-
-	const dispatch = createEventDispatcher();
 
 	export let post: Post;
 </script>
@@ -13,8 +11,8 @@
 	<!-- 작성자 정보 -->
 	<div class="flex items-center justify-between">
 		<button
-			on:click={() => dispatch('navigate', { url: `/user/${post.userId}` })}
-			class="group flex items-center space-x-4 rounded-2xl p-2 transition-all duration-200 hover:bg-gray-50"
+			on:click={() => goto(`/user/${post.userId}`)}
+			class="group flex cursor-pointer items-center space-x-4 rounded-2xl p-2 transition-all duration-200 hover:bg-gray-50"
 		>
 			<div class="relative">
 				<img
