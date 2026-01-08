@@ -7,11 +7,11 @@
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { accessToken } from '$lib/auth';
 
-	export let data: { accessToken: string | null };
-
-	$: if (data.accessToken) {
-		accessToken.set(data.accessToken);
+	interface Props {
+		data?: { accessToken?: string | null };
 	}
+
+	let { data }: Props = $props();
 
 	onMount(async () => {
 		try {
@@ -30,7 +30,7 @@
 	});
 </script>
 
-<Header {data} />
+<Header />
 <slot />
 
 <svelte:head>

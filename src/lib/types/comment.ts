@@ -1,6 +1,6 @@
 export interface Comment {
 	id: number;
-	parentId: number;
+	parentId: number | null;
 	content: string;
 	user: {
 		id: number;
@@ -9,6 +9,6 @@ export interface Comment {
 	};
 	createdAt: string;
 	liked: boolean;
-	likeId: number;
+	likeId?: number | null;
 	likeCount: number;
 }

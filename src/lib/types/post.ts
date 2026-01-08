@@ -1,15 +1,21 @@
 import type { Comment } from './comment';
 
+export interface User {
+	id: number;
+	userName: string;
+	githubId: number;
+}
+
 export interface Post {
 	id: number;
-	user: { userName: string; githubId: number };
-	comment: [comment: Comment];
+	user: User;
+	comment?: Comment[];
 	userId: number;
 	title: string;
 	content: string;
 	views: number;
-	updatedAt: Date;
+	updatedAt: Date | string;
 	likeCount: number;
 	liked: boolean;
-	likeId: number;
+	likeId?: number;
 }
