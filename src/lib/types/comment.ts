@@ -1,6 +1,6 @@
 export interface Comment {
 	id: number;
-	parentId: number | null;
+	parent: { id: number } | null;
 	content: string;
 	user: {
 		id: number;

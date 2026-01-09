@@ -48,7 +48,7 @@
 		});
 	}
 
-	const topLevelComments = $derived(post.comment?.filter((c) => !c.parentId) ?? []);
+	const topLevelComments = $derived(post.comment?.filter((c) => !c.parent) ?? []);
 </script>
 
 <div class="border-t border-gray-200 bg-gray-50 p-6 sm:p-8 lg:p-10">
@@ -83,7 +83,7 @@
 				{post}
 				{refreshPost}
 				onCommentUpdate={handleCommentUpdate}
-				replies={post.comment?.filter((c) => c.parentId === comment.id) ?? []}
+				replies={post.comment?.filter((c) => c.parent?.id === comment.id) ?? []}
 			/>
 		{/each}
 		{#if topLevelComments.length === 0}

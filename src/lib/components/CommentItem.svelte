@@ -24,11 +24,7 @@
 	let editContent = $state('');
 
 	const currentUser = $derived($accessToken ? parseJwt($accessToken) : null);
-	const isOwnComment = $derived(() => {
-		const isOwn = currentUser?.id === comment.user.id;
-		console.log('Comment', comment.id, '- currentUser:', currentUser?.id, 'comment.user:', comment.user.id, 'isOwn:', isOwn);
-		return isOwn;
-	});
+	const isOwnComment = $derived(currentUser?.id === comment.user.id);
 
 	async function handleAddReply() {
 		if (!replyContent.trim() || isSubmitting) return;
@@ -206,20 +202,18 @@
 					답글
 				</button>
 
-				{#if isOwnComment}
-					<button
-						onclick={handleStartEdit}
-						class="font-medium text-gray-500 transition hover:text-gray-900"
-					>
-						수정
-					</button>
-					<button
-						onclick={handleDeleteComment}
-						class="font-medium text-gray-500 transition hover:text-red-600"
-					>
-						삭제
-					</button>
-				{/if}
+				<button
+					onclick={handleStartEdit}
+					class="font-medium text-gray-500 transition hover:text-gray-900"
+				>
+					수정
+				</button>
+				<button
+					onclick={handleDeleteComment}
+					class="font-medium text-gray-500 transition hover:text-red-600"
+				>
+					삭제
+				</button>
 
 				{#if replies.length > 0}
 					<span class="text-gray-400">답글 {replies.length}개</span>
@@ -268,7 +262,7 @@
 					{post}
 					{refreshPost}
 					{onCommentUpdate}
-					replies={post.comment?.filter((c) => c.parentId === reply.id) ?? []}
+					replies={post.comment?.filter((c) => c.parent?.id === reply.id) ?? []}
 				/>
 			{/each}
 		</div>
