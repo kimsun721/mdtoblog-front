@@ -10,6 +10,7 @@ export interface Post {
 	id: number;
 	user: User;
 	comment?: Comment[];
+	commentCount?: number;
 	userId: number;
 	title: string;
 	content: string;

@@ -6,6 +6,7 @@
 	import { parseJwt } from '$lib/utils/auth';
 	import { getRelativeTime } from '$lib/utils/date';
 	import { goto } from '$app/navigation';
+	import CommentItem from './CommentItem.svelte';
 
 	interface Props {
 		comment: Comment;
@@ -19,9 +20,15 @@
 	let isReplying = $state(false);
 	let replyContent = $state('');
 	let isSubmitting = $state(false);
+	let isEditing = $state(false);
+	let editContent = $state('');
 
 	const currentUser = $derived($accessToken ? parseJwt($accessToken) : null);
-	const isOwnComment = $derived(currentUser?.id === comment.user.id);
+	const isOwnComment = $derived(() => {
+		const isOwn = currentUser?.id === comment.user.id;
+		console.log('Comment', comment.id, '- currentUser:', currentUser?.id, 'comment.user:', comment.user.id, 'isOwn:', isOwn);
+		return isOwn;
+	});
 
 	async function handleAddReply() {
 		if (!replyContent.trim() || isSubmitting) return;
@@ -39,6 +46,27 @@
 		} catch (error) {
 			console.error('Failed to add reply:', error);
 			alert('답글 등록에 실패했습니다');
+		} finally {
+			isSubmitting = false;
+		}
+	}
+
+	function handleStartEdit() {
+		editContent = comment.content;
+		isEditing = true;
+	}
+
+	async function handleEditComment() {
+		if (!editContent.trim() || isSubmitting) return;
+
+		isSubmitting = true;
+		try {
+			await api.updateComment(comment.id, editContent.trim());
+			isEditing = false;
+			await refreshPost();
+		} catch (error) {
+			console.error('Failed to update comment:', error);
+			alert('댓글 수정에 실패했습니다');
 		} finally {
 			isSubmitting = false;
 		}
@@ -107,13 +135,43 @@
 
 		<!-- Content -->
 		<div class="min-w-0 flex-1">
-			<div class="rounded-lg bg-white border border-gray-200 px-5 py-4">
-				<div class="mb-2 flex items-center gap-2">
-					<span class="text-base font-medium text-gray-900">{comment.user.userName}</span>
-					<span class="text-sm text-gray-400">{getRelativeTime(comment.createdAt)}</span>
+			{#if isEditing}
+				<!-- Edit Form -->
+				<div class="rounded-lg bg-white border border-gray-200 p-4">
+					<textarea
+						bind:value={editContent}
+						class="w-full resize-none rounded-lg border border-gray-300 bg-white p-3 text-base text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+						rows="3"
+					></textarea>
+					<div class="mt-3 flex justify-end gap-2">
+						<button
+							onclick={() => {
+								isEditing = false;
+								editContent = '';
+							}}
+							class="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100"
+						>
+							취소
+						</button>
+						<button
+							onclick={handleEditComment}
+							disabled={!editContent.trim() || isSubmitting}
+							class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{isSubmitting ? '수정 중...' : '수정'}
+						</button>
+					</div>
 				</div>
-				<p class="whitespace-pre-wrap break-words text-base text-gray-700">{comment.content}</p>
-			</div>
+			{:else}
+				<!-- Normal View -->
+				<div class="rounded-lg bg-white border border-gray-200 px-5 py-4">
+					<div class="mb-2 flex items-center gap-2">
+						<span class="text-base font-medium text-gray-900">{comment.user.userName}</span>
+						<span class="text-sm text-gray-400">{getRelativeTime(comment.createdAt)}</span>
+					</div>
+					<p class="whitespace-pre-wrap break-words text-base text-gray-700">{comment.content}</p>
+				</div>
+			{/if}
 
 			<!-- Actions -->
 			<div class="mt-3 flex items-center gap-4 text-sm">
@@ -149,6 +207,12 @@
 				</button>
 
 				{#if isOwnComment}
+					<button
+						onclick={handleStartEdit}
+						class="font-medium text-gray-500 transition hover:text-gray-900"
+					>
+						수정
+					</button>
 					<button
 						onclick={handleDeleteComment}
 						class="font-medium text-gray-500 transition hover:text-red-600"
@@ -199,7 +263,13 @@
 	{#if replies.length > 0}
 		<div class="ml-11 mt-4 space-y-4">
 			{#each replies as reply (reply.id)}
-				<svelte:self comment={reply} {post} {refreshPost} {onCommentUpdate} replies={[]} />
+				<CommentItem
+					comment={reply}
+					{post}
+					{refreshPost}
+					{onCommentUpdate}
+					replies={post.comment?.filter((c) => c.parentId === reply.id) ?? []}
+				/>
 			{/each}
 		</div>
 	{/if}

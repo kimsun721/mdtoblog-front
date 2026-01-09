@@ -110,6 +110,14 @@ class ApiService {
 		});
 	}
 
+	async updateComment(id: number, content: string) {
+		return this.request(`/comment/${id}`, {
+			method: 'PATCH',
+			body: JSON.stringify({ content }),
+			requiresAuth: true
+		});
+	}
+
 	async deleteComment(id: number) {
 		return this.request(`/comment/${id}`, {
 			method: 'DELETE',
