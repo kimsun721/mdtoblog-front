@@ -15,8 +15,6 @@
 	async function loadPost() {
 		const postId = $page.params.id;
 		if (!postId) return;
-
-		// 이미 로드한 게시글이면 다시 로드하지 않음
 		if (lastLoadedPostId === postId && post) return;
 
 		isLoading = true;
@@ -31,11 +29,9 @@
 		}
 	}
 
-	// 강제 새로고침 (댓글 등록시 사용)
 	async function refreshPost() {
 		const postId = $page.params.id;
 		if (!postId) return;
-
 		try {
 			const data: any = await api.getPost(postId);
 			post = data.data;
@@ -44,28 +40,20 @@
 		}
 	}
 
-	// accessToken이 설정되거나 page.params.id가 변경되면 로드
 	$effect(() => {
-		// dependency: accessToken과 page.params.id를 읽음
 		$accessToken;
 		$page.params.id;
-
-		// 토큰 대기: layout의 onMount가 완료될 때까지 짧게 대기
-		setTimeout(() => {
-			loadPost();
-		}, 50);
+		setTimeout(() => { loadPost(); }, 50);
 	});
 
 	async function handleLikeToggle() {
 		if (!post) return;
 
-		// 낙관적 UI 업데이트 (즉시 반영)
 		const originalLiked = post.liked;
 		const originalLikeId = post.likeId;
 		const originalLikeCount = post.likeCount;
 		const currentPostId = post.id;
 
-		// UI 먼저 업데이트
 		if (post.liked) {
 			post = { ...post, liked: false, likeCount: post.likeCount - 1, likeId: undefined };
 		} else {
@@ -73,72 +61,60 @@
 		}
 
 		try {
-			// API 호출
 			if (originalLiked && originalLikeId) {
-				const result = await api.unlikePost(originalLikeId);
-				console.log('Unlike result:', result);
+				await api.unlikePost(originalLikeId);
 			} else {
 				const result: any = await api.likePost(currentPostId);
-				console.log('Like result:', result);
-				// 좋아요 ID 업데이트
 				if (result?.data?.likeId) {
 					post = { ...post, likeId: result.data.likeId };
 				}
 			}
-
-			// 성공하면 데이터 다시 로드 (lastLoadedPostId 초기화해서 강제 로드)
 			lastLoadedPostId = null;
 			await loadPost();
 		} catch (error) {
 			console.error('Failed to toggle like:', error);
-			// 에러 발생시 원래 상태로 롤백
 			post = { ...post, liked: originalLiked, likeId: originalLikeId, likeCount: originalLikeCount };
 			alert('좋아요 처리에 실패했습니다');
 		}
 	}
-
 </script>
 
 <svelte:head>
 	<title>{post?.title ?? '로딩 중...'} · MdToBlog</title>
 </svelte:head>
 
-<main class="min-h-screen bg-gray-50 py-8">
-	<div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+<main class="min-h-screen" style="background: var(--bg);">
+	<div class="mx-auto max-w-3xl px-5 py-12 sm:px-8">
 		{#if isLoading}
-			<!-- Loading State -->
 			<div class="flex min-h-[60vh] items-center justify-center">
-				<div class="text-center">
-					<div
-						class="mb-3 inline-block h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-gray-900"
-					></div>
-					<p class="text-sm text-gray-500">로딩 중...</p>
-				</div>
+				<div class="h-5 w-5 animate-spin rounded-full border-2" style="border-color: var(--border); border-top-color: var(--text-secondary);"></div>
 			</div>
 		{:else if post}
-			<!-- Post Content -->
-			<article class="rounded-lg border border-gray-200 bg-white shadow-sm">
-				<div class="p-6 sm:p-8 lg:p-10">
+			<!-- Article card -->
+			<div class="rounded-2xl border overflow-hidden" style="background: var(--bg-surface); border-color: var(--border);">
+				<div class="p-7 sm:p-10">
 					<PostHeader {post} />
 					<PostContent content={post.content} />
 
-					<!-- Like Button Section -->
-					<div class="mt-8 flex justify-center border-t border-gray-100 pt-6">
+					<div class="mt-12 flex justify-center border-t pt-10" style="border-color: var(--border-subtle);">
 						<LikeButton liked={post.liked} likeCount={post.likeCount} ontoggle={handleLikeToggle} />
 					</div>
 				</div>
 
-				<!-- Comments Section -->
-				<CommentSection {post} {refreshPost} />
-			</article>
+				<div class="border-t" style="border-color: var(--border); background: var(--bg);">
+					<div class="p-7 sm:p-10">
+						<CommentSection {post} {refreshPost} />
+					</div>
+				</div>
+			</div>
 		{:else}
-			<!-- Error State -->
 			<div class="flex min-h-[60vh] items-center justify-center">
 				<div class="text-center">
-					<p class="text-gray-600">게시글을 불러올 수 없습니다</p>
+					<p class="text-sm" style="color: var(--text-secondary);">게시글을 불러올 수 없습니다</p>
 					<button
 						onclick={() => window.location.reload()}
-						class="mt-4 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-gray-800"
+						class="cursor-pointer mt-4 text-xs underline underline-offset-2 transition hover:opacity-60"
+						style="color: var(--text-muted);"
 					>
 						다시 시도
 					</button>

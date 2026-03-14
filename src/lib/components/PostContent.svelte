@@ -87,76 +87,77 @@
 <style>
 	.prose {
 		max-width: none;
-		color: #374151;
-		line-height: 1.75;
+		color: var(--text-secondary, #374151);
+		line-height: 1.8;
 	}
 
 	/* Headings */
 	.prose :global(h1) {
-		font-size: 2rem;
+		font-size: 1.875rem;
 		font-weight: 700;
 		margin-top: 2rem;
 		margin-bottom: 1rem;
 		padding-bottom: 0.5rem;
-		border-bottom: 2px solid #e5e7eb;
-		color: #111827;
+		border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+		color: var(--text, #111827);
 	}
 
 	.prose :global(h2) {
-		font-size: 1.5rem;
+		font-size: 1.4rem;
 		font-weight: 700;
-		margin-top: 1.75rem;
+		margin-top: 2rem;
 		margin-bottom: 0.75rem;
-		color: #111827;
+		color: var(--text, #111827);
 	}
 
 	.prose :global(h3) {
-		font-size: 1.25rem;
+		font-size: 1.2rem;
 		font-weight: 600;
 		margin-top: 1.5rem;
 		margin-bottom: 0.5rem;
-		color: #1f2937;
+		color: var(--text, #1f2937);
 	}
 
 	.prose :global(h4),
 	.prose :global(h5),
 	.prose :global(h6) {
-		font-size: 1.125rem;
+		font-size: 1.05rem;
 		font-weight: 600;
 		margin-top: 1.25rem;
 		margin-bottom: 0.5rem;
-		color: #1f2937;
+		color: var(--text, #1f2937);
 	}
 
 	/* Paragraphs */
 	.prose :global(p) {
-		margin-bottom: 1rem;
-		line-height: 1.75;
+		margin-bottom: 1.2rem;
+		line-height: 1.8;
 	}
 
 	/* Links */
 	.prose :global(a) {
-		color: #4b5563;
+		color: var(--text-secondary, #4b5563);
 		text-decoration: underline;
-		text-underline-offset: 2px;
+		text-underline-offset: 3px;
 		font-weight: 500;
+		cursor: pointer;
 		transition: color 150ms;
 	}
 
 	.prose :global(a:hover) {
-		color: #111827;
+		color: var(--text, #111827);
 	}
 
 	/* Inline code */
 	.prose :global(:not(pre) > code) {
-		background-color: #f3f4f6;
-		color: #1f2937;
-		padding: 0.125rem 0.375rem;
-		border-radius: 0.25rem;
+		background-color: var(--bg-hover, #f3f4f6);
+		color: var(--text, #1f2937);
+		padding: 0.15rem 0.4rem;
+		border-radius: 0.3rem;
 		font-size: 0.875em;
 		font-weight: 500;
 		font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
-		border: 1px solid #e5e7eb;
+		border: 1px solid var(--border, #e5e7eb);
 	}
 
 	/* Code blocks */
@@ -181,12 +182,13 @@
 
 	/* Blockquote */
 	.prose :global(blockquote) {
-		border-left: 4px solid #d1d5db;
-		background-color: #f9fafb;
-		padding: 0.75rem 1rem;
-		margin: 1rem 0;
+		border-left: 3px solid var(--border, #d1d5db);
+		background-color: var(--bg-subtle, #f9fafb);
+		padding: 0.75rem 1.25rem;
+		margin: 1.25rem 0;
 		font-style: italic;
-		color: #6b7280;
+		color: var(--text-muted, #6b7280);
+		border-radius: 0 0.375rem 0.375rem 0;
 	}
 
 	.prose :global(blockquote p) {
@@ -202,7 +204,7 @@
 
 	.prose :global(li) {
 		margin-bottom: 0.5rem;
-		line-height: 1.75;
+		line-height: 1.8;
 	}
 
 	.prose :global(ul) {
@@ -224,7 +226,7 @@
 	/* Emphasis */
 	.prose :global(strong) {
 		font-weight: 600;
-		color: #111827;
+		color: var(--text, #111827);
 	}
 
 	.prose :global(em) {
@@ -238,11 +240,13 @@
 		margin: 1.5rem 0;
 		overflow-x: auto;
 		display: block;
+		border-radius: 0.5rem;
+		border: 1px solid var(--border, #e5e7eb);
 	}
 
 	.prose :global(thead) {
-		background-color: #f9fafb;
-		border-bottom: 2px solid #e5e7eb;
+		background-color: var(--bg-subtle, #f9fafb);
+		border-bottom: 1px solid var(--border, #e5e7eb);
 	}
 
 	.prose :global(th) {
@@ -250,23 +254,27 @@
 		text-align: left;
 		font-weight: 600;
 		font-size: 0.875rem;
-		color: #374151;
+		color: var(--text, #374151);
 	}
 
 	.prose :global(td) {
 		padding: 0.75rem 1rem;
-		border-bottom: 1px solid #e5e7eb;
-		color: #4b5563;
+		border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+		color: var(--text-secondary, #4b5563);
+	}
+
+	.prose :global(tbody tr:last-child td) {
+		border-bottom: none;
 	}
 
 	.prose :global(tbody tr:hover) {
-		background-color: #f9fafb;
+		background-color: var(--bg-hover, #f9fafb);
 	}
 
 	/* Horizontal rule */
 	.prose :global(hr) {
 		border: none;
-		border-top: 1px solid #e5e7eb;
+		border-top: 1px solid var(--border-subtle, #e5e7eb);
 		margin: 2rem 0;
 	}
 
@@ -274,9 +282,9 @@
 	.prose :global(img) {
 		max-width: 100%;
 		height: auto;
-		border-radius: 0.5rem;
+		border-radius: 0.75rem;
 		margin: 1.5rem 0;
-		border: 1px solid #e5e7eb;
+		border: 1px solid var(--border, #e5e7eb);
 	}
 
 	/* Scrollbar for code blocks */

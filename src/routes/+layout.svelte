@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { accessToken } from '$lib/auth';
+	import { theme } from '$lib/stores/theme';
 
 	interface Props {
 		data?: { accessToken?: string | null };
@@ -14,6 +15,8 @@
 	let { data }: Props = $props();
 
 	onMount(async () => {
+		theme.init();
+
 		try {
 			const res = await fetch(`${PUBLIC_API_URL}/auth/refresh`, {
 				method: 'POST',
