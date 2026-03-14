@@ -257,7 +257,7 @@
 		</div>
 	{/if}
 
-	<div class="mx-auto max-w-3xl px-5 sm:px-8">
+	<div class="mx-auto max-w-5xl px-6 sm:px-10">
 		<!-- 헤더 -->
 		<div class="mb-12">
 			<h1 class="mb-1.5 text-2xl font-semibold tracking-tight" style="color: var(--text);">Repository</h1>

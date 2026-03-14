@@ -2,6 +2,7 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Header from '$lib/Header.svelte';
+	import Footer from '$lib/Footer.svelte';
 
 	import { onMount } from 'svelte';
 	import { PUBLIC_API_URL } from '$env/static/public';
@@ -33,8 +34,13 @@
 	});
 </script>
 
-<Header />
-<slot />
+<div class="flex min-h-screen flex-col" style="background: var(--bg);">
+	<Header />
+	<div class="flex-1">
+		<slot />
+	</div>
+	<Footer />
+</div>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />

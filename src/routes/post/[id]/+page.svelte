@@ -84,7 +84,7 @@
 </svelte:head>
 
 <main class="min-h-screen" style="background: var(--bg);">
-	<div class="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+	<div class="mx-auto max-w-5xl px-6 py-12 sm:px-10">
 		{#if isLoading}
 			<div class="flex min-h-[60vh] items-center justify-center">
 				<div class="h-5 w-5 animate-spin rounded-full border-2" style="border-color: var(--border); border-top-color: var(--text-secondary);"></div>

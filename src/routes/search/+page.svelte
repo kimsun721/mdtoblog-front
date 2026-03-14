@@ -18,7 +18,7 @@
 </svelte:head>
 
 <main class="min-h-screen" style="background: var(--bg);">
-	<div class="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+	<div class="mx-auto max-w-5xl px-6 py-12 sm:px-10">
 		<!-- Header -->
 		<div class="mb-8 pb-6 border-b" style="border-color: var(--border);">
 			<h1 class="mb-1 text-xl font-semibold tracking-tight" style="color: var(--text);">검색 결과</h1>

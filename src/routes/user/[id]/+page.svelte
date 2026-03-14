@@ -46,7 +46,7 @@
 			<p class="text-sm" style="color: var(--text-secondary);">존재하지 않는 유저입니다.</p>
 		</div>
 	{:else}
-		<div class="mx-auto max-w-3xl px-5 py-12 sm:px-8">
+		<div class="mx-auto max-w-5xl px-6 py-12 sm:px-10">
 			<!-- Profile card -->
 			<div class="mb-8 rounded-2xl border p-7" style="background: var(--bg-surface); border-color: var(--border);">
 				<div class="flex items-center gap-5">
