@@ -320,16 +320,16 @@
 									<div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg transition-all duration-150"
 										style={selectedRepo === repo ? 'background: rgba(255,255,255,0.15);' : 'background: var(--bg-hover);'}>
 										<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"
-											style={selectedRepo === repo ? 'color: white;' : 'color: var(--text-secondary);'}>
+											style={selectedRepo === repo ? 'color: var(--bg-surface);' : 'color: var(--text-secondary);'}>
 											<path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
 										</svg>
 									</div>
 									<div class="min-w-0 flex-1">
-										<p class="truncate text-sm font-medium" style={selectedRepo === repo ? 'color: white;' : 'color: var(--text);'}>{repo}</p>
-										<p class="text-xs" style={selectedRepo === repo ? 'color: rgba(255,255,255,0.6);' : 'color: var(--text-muted);'}>repository</p>
+										<p class="truncate text-sm font-medium" style={selectedRepo === repo ? 'color: var(--bg-surface);' : 'color: var(--text);'}>{repo}</p>
+										<p class="text-xs" style={selectedRepo === repo ? 'color: color-mix(in srgb, var(--bg-surface) 60%, transparent);' : 'color: var(--text-muted);'}>repository</p>
 									</div>
 									{#if selectedRepo === repo}
-										<svg class="h-4 w-4 flex-shrink-0 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="h-4 w-4 flex-shrink-0" style="color: var(--bg-surface);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
 										</svg>
 									{/if}
@@ -357,7 +357,7 @@
 									class="cursor-text flex-1 rounded-lg border px-3 py-2 text-sm outline-none transition"
 									style="background: var(--bg-surface); color: var(--text); border-color: var(--border);"
 								/>
-								<button on:click={addIgnorePath} class="cursor-pointer rounded-lg px-4 text-xs font-medium text-white transition hover:opacity-80" style="background: var(--text);">
+								<button on:click={addIgnorePath} class="cursor-pointer rounded-lg px-4 text-xs font-medium transition hover:opacity-80" style="background: var(--text); color: var(--bg-surface);">
 									추가
 								</button>
 							</div>
@@ -382,8 +382,8 @@
 					<button
 						on:click={registerRepo}
 						disabled={isSaving}
-						class="cursor-pointer animate-in fade-in slide-in-from-bottom-2 w-full rounded-xl py-3 text-sm font-medium text-white transition hover:opacity-80 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
-						style="background: var(--text);"
+						class="cursor-pointer animate-in fade-in slide-in-from-bottom-2 w-full rounded-xl py-3 text-sm font-medium transition hover:opacity-80 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+						style="background: var(--text); color: var(--bg-surface);"
 					>
 						{#if isSaving}
 							<span class="flex items-center justify-center gap-2">
@@ -426,7 +426,7 @@
 									<div class="flex items-center justify-between">
 										<div class="flex items-center gap-3">
 											<div class="flex h-9 w-9 items-center justify-center rounded-lg" style="background: var(--text);">
-												<svg class="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+												<svg class="h-4 w-4" style="color: var(--bg-surface);" fill="currentColor" viewBox="0 0 24 24">
 													<path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
 												</svg>
 											</div>
@@ -482,7 +482,7 @@
 														<input bind:value={editIgnoreInput} on:keydown={(e) => e.key === 'Enter' && addEditIgnorePath()} placeholder="예) logs/"
 															class="cursor-text flex-1 rounded-lg border px-3 py-2 text-xs outline-none transition"
 															style="background: var(--bg); color: var(--text); border-color: var(--border);" />
-														<button on:click={addEditIgnorePath} class="cursor-pointer rounded-lg px-3 text-xs font-medium text-white transition hover:opacity-80" style="background: var(--text);">추가</button>
+														<button on:click={addEditIgnorePath} class="cursor-pointer rounded-lg px-3 text-xs font-medium transition hover:opacity-80" style="background: var(--text); color: var(--bg-surface);">추가</button>
 													</div>
 													{#if editIgnorePaths.length > 0}
 														<div class="mb-3 flex flex-wrap gap-1.5">
@@ -497,7 +497,7 @@
 														</div>
 													{/if}
 													<div class="flex gap-2">
-														<button on:click={() => saveEdit(repo.id)} class="cursor-pointer flex-1 rounded-lg py-2 text-xs font-medium text-white transition hover:opacity-80" style="background: var(--text);">저장</button>
+														<button on:click={() => saveEdit(repo.id)} class="cursor-pointer flex-1 rounded-lg py-2 text-xs font-medium transition hover:opacity-80" style="background: var(--text); color: var(--bg-surface);">저장</button>
 														<button on:click={cancelEdit} class="cursor-pointer flex-1 rounded-lg border py-2 text-xs font-medium transition hover:bg-[var(--bg-hover)]" style="color: var(--text-secondary); border-color: var(--border);">취소</button>
 													</div>
 												</div>
