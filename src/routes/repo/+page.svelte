@@ -223,9 +223,12 @@
 		}
 	};
 
-	onMount(() => {
+	// 토큰이 준비됐을 때 로드 (layout의 refresh가 먼저 완료되면 그 후에 실행)
+	let _prevToken: string | null = null;
+	$: if ($accessToken !== _prevToken) {
+		_prevToken = $accessToken;
 		loadRepos();
-	});
+	}
 
 	$: unregisteredRepos = availableRepos.filter(
 		(repo) => !registeredRepos.some((r) => r.repoName === repo)
