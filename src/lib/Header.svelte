@@ -11,6 +11,7 @@
 	let profileImage = $state('');
 	let userId = $state<number | null>(null);
 	let userName = $state('');
+	let userEmail = $state('');
 	let dropdownOpen = $state(false);
 	let isDark = $state(false);
 
@@ -24,11 +25,13 @@
 			if (payload) {
 				userId = payload.userId ?? payload.id ?? null;
 				userName = payload.userName;
+				userEmail = payload.email ?? '';
 				profileImage = `https://avatars.githubusercontent.com/u/${payload.githubId}`;
 			}
 		} else {
 			userId = null;
 			userName = '';
+			userEmail = '';
 			profileImage = '';
 		}
 	});
@@ -74,110 +77,250 @@
 	});
 </script>
 
-<header class="sticky top-0 z-50 border-b bg-[var(--bg-surface)]/90 backdrop-blur-md" style="border-color: var(--border);">
-	<div class="mx-auto max-w-6xl px-6 sm:px-10">
-		<div class="flex h-16 items-center justify-between gap-6">
+<nav class="nav">
+	<div class="nav-inner">
+		<!-- Logo -->
+		<a href="/" class="logo">Md<span>To</span>Blog</a>
 
-			<!-- Logo -->
-			<a href="/" class="flex-shrink-0 cursor-pointer transition-opacity hover:opacity-60">
-				<span class="text-base font-bold tracking-tight" style="color: var(--text);">MdToBlog</span>
-			</a>
+		<!-- Search -->
+		<form onsubmit={handleSearch} class="search-wrap">
+			<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+				<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+			</svg>
+			<input
+				bind:value={keyword}
+				class="search-input"
+				type="search"
+				placeholder="포스트 검색..."
+			/>
+		</form>
 
-			<!-- Search -->
-			<form onsubmit={handleSearch} class="max-w-sm flex-1">
-				<div class="relative w-full">
-					<svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+		<!-- Actions -->
+		<div class="nav-actions">
+			<!-- Theme toggle -->
+			<button class="btn-icon" onclick={() => theme.toggle()} aria-label="테마 변경">
+				{#if isDark}
+					<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<circle cx="12" cy="12" r="5"/>
+						<path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
 					</svg>
-					<input
-						bind:value={keyword}
-						type="search"
-						placeholder="검색어를 입력하세요"
-						class="w-full cursor-text rounded-lg border py-2 pl-10 pr-4 text-sm outline-none transition focus:border-[var(--text-muted)]"
-						style="background: var(--bg); color: var(--text); border-color: var(--border);"
-					/>
-				</div>
-			</form>
-
-			<!-- Right side -->
-			<div class="flex items-center gap-3">
-				<!-- Dark mode toggle -->
-				<button
-					onclick={() => theme.toggle()}
-					class="cursor-pointer rounded-lg p-2 transition-colors hover:bg-[var(--bg-hover)]"
-					aria-label="테마 변경"
-				>
-					{#if isDark}
-						<svg class="h-[18px] w-[18px]" style="color: var(--text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-						</svg>
-					{:else}
-						<svg class="h-[18px] w-[18px]" style="color: var(--text-secondary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-						</svg>
-					{/if}
-				</button>
-
-				<!-- User Menu -->
-				{#if $accessToken && profileImage}
-					<div id="profile-dropdown" class="relative">
-						<button
-							onclick={() => (dropdownOpen = !dropdownOpen)}
-							class="cursor-pointer flex items-center gap-2.5 rounded-lg px-3 py-1.5 transition hover:bg-[var(--bg-hover)]"
-							aria-label="프로필 메뉴"
-						>
-							<img src={profileImage} alt={userName} class="h-7 w-7 rounded-full border" style="border-color: var(--border);" />
-							<span class="hidden text-sm font-medium sm:block" style="color: var(--text);">{userName}</span>
-							<svg class="h-3.5 w-3.5" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-							</svg>
-						</button>
-
-						{#if dropdownOpen}
-							<div class="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border shadow-xl shadow-black/10" style="background: var(--bg-surface); border-color: var(--border);">
-								<div class="px-4 py-3 border-b" style="border-color: var(--border-subtle);">
-									<p class="text-sm font-semibold" style="color: var(--text);">{userName}</p>
-								</div>
-
-								<nav class="py-1.5">
-									<a href={`/user/${userId}`} class="cursor-pointer flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-[var(--bg-hover)]" style="color: var(--text-secondary);">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-										</svg>
-										내 프로필
-									</a>
-									<a href="/repo" class="cursor-pointer flex items-center gap-3 px-4 py-2.5 text-sm transition hover:bg-[var(--bg-hover)]" style="color: var(--text-secondary);">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
-										</svg>
-										레포지토리 관리
-									</a>
-								</nav>
-
-								<div class="border-t py-1.5" style="border-color: var(--border-subtle);">
-									<button onclick={handleLogout} class="cursor-pointer flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-[var(--bg-hover)]" style="color: var(--text-secondary);">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-										</svg>
-										로그아웃
-									</button>
-								</div>
-							</div>
-						{/if}
-					</div>
 				{:else}
-					<a
-						href={`${PUBLIC_API_URL}/auth/github`}
-						class="cursor-pointer flex-shrink-0 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition hover:opacity-80"
-						style="background: var(--text); color: var(--bg-surface);"
-					>
-						<svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
-						</svg>
-						GitHub 로그인
-					</a>
+					<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+					</svg>
 				{/if}
-			</div>
+			</button>
+
+			{#if $accessToken && profileImage}
+				<!-- Profile dropdown -->
+				<div id="profile-dropdown" class="profile-wrap">
+					<button onclick={() => (dropdownOpen = !dropdownOpen)} aria-label="프로필 메뉴">
+						<img class="nav-avatar" src={profileImage} alt={userName} />
+					</button>
+
+					<div class="dropdown" class:open={dropdownOpen}>
+						<div class="dropdown-header">
+							<div class="dropdown-username">{userName}</div>
+							{#if userEmail}<div class="dropdown-email">{userEmail}</div>{/if}
+						</div>
+						<button class="dropdown-item" onclick={() => { goto(`/user/${userId}`); dropdownOpen = false; }}>
+							<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+								<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+								<circle cx="12" cy="7" r="4"/>
+							</svg>
+							내 프로필
+						</button>
+						<button class="dropdown-item" onclick={() => { goto('/repo'); dropdownOpen = false; }}>
+							<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+								<rect x="3" y="3" width="18" height="18" rx="2"/>
+								<path d="M3 9h18M9 21V9"/>
+							</svg>
+							레포지토리 관리
+						</button>
+						<div class="dropdown-divider"></div>
+						<button class="dropdown-item danger" onclick={handleLogout}>
+							<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+								<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+							</svg>
+							로그아웃
+						</button>
+					</div>
+				</div>
+			{:else}
+				<a href={`${PUBLIC_API_URL}/auth/github`} class="btn-login">
+					GitHub 로그인
+				</a>
+			{/if}
 		</div>
 	</div>
-</header>
+</nav>
+
+<style>
+.nav {
+	position: sticky;
+	top: 0;
+	z-index: 300;
+	background: var(--bg-glass);
+	backdrop-filter: blur(20px) saturate(180%);
+	-webkit-backdrop-filter: blur(20px) saturate(180%);
+	border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 0 24px;
+	height: 60px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+.logo {
+	font-size: 17px;
+	font-weight: 700;
+	color: var(--text);
+	text-decoration: none;
+	letter-spacing: -0.5px;
+	flex-shrink: 0;
+}
+.logo span {
+	color: var(--accent);
+}
+.search-wrap {
+	flex: 1;
+	max-width: 320px;
+	position: relative;
+}
+.search-wrap svg {
+	position: absolute;
+	left: 11px;
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--text-muted);
+	pointer-events: none;
+}
+.search-input {
+	width: 100%;
+	height: 36px;
+	padding: 0 12px 0 36px;
+	border: 1.5px solid var(--border);
+	border-radius: 10px;
+	font-size: 13px;
+	font-family: inherit;
+	background: var(--bg-surface);
+	color: var(--text);
+	outline: none;
+	transition: border-color var(--tr), box-shadow var(--tr);
+}
+.search-input::placeholder { color: var(--text-muted); }
+.search-input:focus {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(49,130,246,0.12);
+}
+.nav-actions {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.btn-icon {
+	width: 34px;
+	height: 34px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	background: transparent;
+	border-radius: 10px;
+	cursor: pointer;
+	color: var(--text-secondary);
+	transition: background var(--tr), color var(--tr);
+}
+.btn-icon:hover { background: var(--bg-hover); color: var(--text); }
+.btn-login {
+	height: 34px;
+	padding: 0 14px;
+	background: var(--text);
+	color: var(--bg-surface);
+	border: none;
+	border-radius: 10px;
+	font-size: 13px;
+	font-weight: 600;
+	font-family: inherit;
+	cursor: pointer;
+	text-decoration: none;
+	display: flex;
+	align-items: center;
+	transition: opacity var(--tr);
+}
+.btn-login:hover { opacity: 0.8; }
+
+/* Dropdown */
+.profile-wrap { position: relative; }
+.nav-avatar {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	object-fit: cover;
+	cursor: pointer;
+	border: 2px solid var(--border);
+	transition: border-color var(--tr);
+	display: block;
+}
+.nav-avatar:hover { border-color: var(--accent); }
+.profile-wrap > button {
+	background: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+.dropdown {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	background: var(--bg-surface);
+	border: 1px solid var(--border);
+	border-radius: var(--r-md);
+	box-shadow: var(--sh-md);
+	min-width: 176px;
+	overflow: hidden;
+	opacity: 0;
+	pointer-events: none;
+	transform: translateY(-6px);
+	transition: opacity 0.16s ease, transform 0.16s ease;
+	z-index: 400;
+}
+.dropdown.open {
+	opacity: 1;
+	pointer-events: all;
+	transform: translateY(0);
+}
+.dropdown-header {
+	padding: 12px 16px 10px;
+	border-bottom: 1px solid var(--border-subtle);
+}
+.dropdown-username { font-size: 14px; font-weight: 700; color: var(--text); }
+.dropdown-email { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 10px 16px;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: background var(--tr), color var(--tr);
+	border: none;
+	background: none;
+	font-family: inherit;
+	width: 100%;
+	text-align: left;
+}
+.dropdown-item:hover { background: var(--bg-hover); color: var(--text); }
+.dropdown-item.danger:hover { background: rgba(240,68,82,0.06); color: var(--red); }
+.dropdown-divider { height: 1px; background: var(--border-subtle); margin: 4px 0; }
+
+@media (max-width: 720px) {
+	.search-wrap { max-width: 180px; }
+}
+</style>

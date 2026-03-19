@@ -8,16 +8,38 @@
 	let { liked, likeCount, ontoggle }: Props = $props();
 </script>
 
-<button
-	onclick={ontoggle}
-	class="cursor-pointer inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
-	style={liked
-		? 'background: var(--text); color: var(--bg-surface); border-color: var(--text);'
-		: 'background: transparent; color: var(--text-secondary); border-color: var(--border);'}
->
-	<svg class="h-4 w-4" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-		<path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+<button class="like-btn" class:liked onclick={ontoggle}>
+	<svg width="15" height="15" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+		<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
 	</svg>
-	<span>{liked ? '좋아요 취소' : '좋아요'}</span>
-	<span class="text-xs opacity-60">{likeCount}</span>
+	<span>{likeCount}</span>
 </button>
+
+<style>
+.like-btn {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 40px;
+	padding: 0 18px;
+	border-radius: 11px;
+	font-size: 14px;
+	font-weight: 600;
+	font-family: inherit;
+	border: 1.5px solid var(--border);
+	background: var(--bg-surface);
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: all var(--tr);
+}
+.like-btn:hover {
+	border-color: var(--red);
+	color: var(--red);
+	background: rgba(240,68,82,0.05);
+}
+.like-btn.liked {
+	border-color: var(--red);
+	color: var(--red);
+	background: rgba(240,68,82,0.07);
+}
+</style>

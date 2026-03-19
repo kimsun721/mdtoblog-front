@@ -14,9 +14,10 @@
 		refreshPost: () => Promise<void>;
 		replies: Comment[];
 		onCommentUpdate: (commentId: number, updates: Partial<Comment>) => void;
+		isReply?: boolean;
 	}
 
-	let { comment, post, refreshPost, replies = [], onCommentUpdate }: Props = $props();
+	let { comment, post, refreshPost, replies = [], onCommentUpdate, isReply = false }: Props = $props();
 	let isReplying = $state(false);
 	let replyContent = $state('');
 	let isSubmitting = $state(false);
@@ -101,97 +102,203 @@
 	}
 </script>
 
-<div>
-	<div class="flex gap-3">
-		<!-- Avatar -->
-		<button onclick={() => goto(`/user/${comment.user.id}`)} class="cursor-pointer flex-shrink-0" aria-label={`${comment.user.userName} 프로필`}>
+<div class="comment-item" class:reply={isReply}>
+	<div class="comment-header">
+		<button class="comment-avatar-btn" onclick={() => goto(`/user/${comment.user.id}`)}>
 			<img
-				src={`https://avatars.githubusercontent.com/u/${comment.user.githubId}`}
+				class="comment-avatar"
+				src={`https://avatars.githubusercontent.com/u/${comment.user.githubId}?s=48`}
 				alt={comment.user.userName}
-				class="h-7 w-7 rounded-full border"
-				style="border-color: var(--border);"
 			/>
 		</button>
-
-		<div class="min-w-0 flex-1">
-			{#if isEditing}
-				<div>
-					<textarea
-						bind:value={editContent}
-						class="cursor-text w-full resize-none rounded-xl border p-3 text-sm outline-none transition"
-						style="background: var(--bg); color: var(--text); border-color: var(--border);"
-						rows="3"
-					></textarea>
-					<div class="mt-2 flex justify-end gap-2">
-						<button onclick={() => { isEditing = false; editContent = ''; }} class="cursor-pointer px-3 py-1.5 text-xs font-medium transition hover:opacity-60" style="color: var(--text-muted);">
-							취소
-						</button>
-						<button onclick={handleEditComment} disabled={!editContent.trim() || isSubmitting}
-							class="cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-							style="background: var(--text); color: var(--bg-surface);">
-							{isSubmitting ? '수정 중...' : '수정'}
-						</button>
-					</div>
-				</div>
-			{:else}
-				<div class="mb-1 flex items-baseline gap-2">
-					<span class="text-sm font-medium" style="color: var(--text);">{comment.user.userName}</span>
-					<span class="text-xs" style="color: var(--text-muted);">{getRelativeTime(comment.createdAt)}</span>
-				</div>
-				<p class="text-sm leading-relaxed whitespace-pre-wrap break-words" style="color: var(--text-secondary);">{comment.content}</p>
-			{/if}
-
-			<!-- Actions -->
-			<div class="mt-2.5 flex items-center gap-3 text-xs" style="color: var(--text-muted);">
-				<button onclick={handleLikeToggle} class="cursor-pointer flex items-center gap-1 transition hover:opacity-100" style="color: {comment.liked ? 'var(--text)' : 'var(--text-muted)'};">
-					<svg class="h-3.5 w-3.5" fill={comment.liked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-					</svg>
-					{#if comment.likeCount > 0}<span>{comment.likeCount}</span>{/if}
-				</button>
-
-				<button onclick={() => (isReplying = !isReplying)} class="cursor-pointer transition hover:opacity-100">답글</button>
-				<button onclick={handleStartEdit} class="cursor-pointer transition hover:opacity-100">수정</button>
-				<button onclick={handleDeleteComment} class="cursor-pointer transition hover:text-red-500">삭제</button>
-			</div>
-
-			<!-- Reply form -->
-			{#if isReplying}
-				<div class="mt-3">
-					<textarea
-						bind:value={replyContent}
-						placeholder="답글을 입력하세요"
-						class="cursor-text w-full resize-none rounded-xl border p-3 text-sm outline-none transition"
-						style="background: var(--bg); color: var(--text); border-color: var(--border);"
-						rows="2"
-					></textarea>
-					<div class="mt-2 flex justify-end gap-2">
-						<button onclick={() => { isReplying = false; replyContent = ''; }} class="cursor-pointer px-3 py-1.5 text-xs font-medium transition hover:opacity-60" style="color: var(--text-muted);">
-							취소
-						</button>
-						<button onclick={handleAddReply} disabled={!replyContent.trim() || isSubmitting}
-							class="cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-							style="background: var(--text); color: var(--bg-surface);">
-							{isSubmitting ? '등록 중...' : '등록'}
-						</button>
-					</div>
-				</div>
-			{/if}
-		</div>
+		<span class="comment-username">{comment.user.userName}</span>
+		<span class="comment-date">{getRelativeTime(comment.createdAt)}</span>
+		{#if isOwnComment}<span class="comment-mine">내 댓글</span>{/if}
 	</div>
+
+	{#if isEditing}
+		<div class="comment-body" style="padding-left: 36px;">
+			<textarea
+				bind:value={editContent}
+				class="reply-textarea"
+				rows="3"
+			></textarea>
+			<div class="reply-actions">
+				<button class="btn-cancel" onclick={() => { isEditing = false; editContent = ''; }}>취소</button>
+				<button
+					class="btn-submit-sm"
+					onclick={handleEditComment}
+					disabled={!editContent.trim() || isSubmitting}
+				>
+					{isSubmitting ? '수정 중...' : '수정'}
+				</button>
+			</div>
+		</div>
+	{:else}
+		<div class="comment-body">{comment.content}</div>
+	{/if}
+
+	<div class="comment-actions">
+		<button
+			class="comment-action-btn"
+			class:liked={comment.liked}
+			onclick={handleLikeToggle}
+		>
+			<svg width="12" height="12" fill={comment.liked ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+				<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+			</svg>
+			{#if comment.likeCount > 0}<span>{comment.likeCount}</span>{/if}
+		</button>
+
+		{#if currentUser && !isReply}
+			<button class="comment-action-btn" onclick={() => (isReplying = !isReplying)}>답글</button>
+		{/if}
+		{#if isOwnComment && !isEditing}
+			<button class="comment-action-btn" onclick={handleStartEdit}>수정</button>
+			<button class="comment-action-btn" style="margin-left:auto;color:var(--text-faint)" onclick={handleDeleteComment}>삭제</button>
+		{/if}
+	</div>
+
+	{#if isReplying}
+		<div class="reply-form open">
+			<textarea
+				bind:value={replyContent}
+				class="reply-textarea"
+				placeholder="답글을 입력하세요..."
+				rows="2"
+			></textarea>
+			<div class="reply-actions">
+				<button class="btn-cancel" onclick={() => { isReplying = false; replyContent = ''; }}>취소</button>
+				<button
+					class="btn-submit-sm"
+					onclick={handleAddReply}
+					disabled={!replyContent.trim() || isSubmitting}
+				>
+					{isSubmitting ? '등록 중...' : '답글 달기'}
+				</button>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Replies -->
 	{#if replies.length > 0}
-		<div class="ml-10 mt-5 space-y-5 border-l-2 pl-4" style="border-color: var(--border-subtle);">
-			{#each replies as reply (reply.id)}
-				<CommentItem
-					comment={reply}
-					{post}
-					{refreshPost}
-					{onCommentUpdate}
-					replies={post.comment?.filter((c) => c.parent?.id === reply.id) ?? []}
-				/>
-			{/each}
-		</div>
+		{#each replies as reply (reply.id)}
+			<CommentItem
+				comment={reply}
+				{post}
+				{refreshPost}
+				{onCommentUpdate}
+				isReply={true}
+				replies={post.comment?.filter((c) => c.parent?.id === reply.id) ?? []}
+			/>
+		{/each}
 	{/if}
 </div>
+
+<style>
+.comment-item {
+	padding: 16px 0;
+	border-bottom: 1px solid var(--border-subtle);
+}
+.comment-item:last-child { border-bottom: none; }
+.comment-item.reply { padding-left: 42px; }
+
+.comment-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 7px;
+}
+.comment-avatar-btn { background: none; border: none; padding: 0; cursor: pointer; flex-shrink: 0; }
+.comment-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.comment-username { font-size: 13px; font-weight: 600; color: var(--text); }
+.comment-date { font-size: 12px; color: var(--text-muted); }
+.comment-mine {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--accent);
+	background: var(--accent-bg);
+	padding: 2px 7px;
+	border-radius: 5px;
+}
+.comment-body {
+	font-size: 14px;
+	color: var(--text-secondary);
+	line-height: 1.65;
+	margin-bottom: 8px;
+	padding-left: 36px;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+.comment-actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding-left: 36px;
+}
+.comment-action-btn {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--text-muted);
+	border: none;
+	background: none;
+	font-family: inherit;
+	cursor: pointer;
+	padding: 3px 7px;
+	border-radius: 6px;
+	transition: all var(--tr);
+}
+.comment-action-btn:hover { color: var(--text); background: var(--bg-hover); }
+.comment-action-btn.liked { color: var(--red); }
+
+.reply-form {
+	margin-top: 10px;
+	padding-left: 36px;
+}
+.reply-textarea {
+	width: 100%;
+	min-height: 64px;
+	padding: 10px 12px;
+	border: 1.5px solid var(--border);
+	border-radius: var(--r-sm);
+	font-size: 13px;
+	font-family: inherit;
+	background: var(--bg-surface);
+	color: var(--text);
+	resize: none;
+	outline: none;
+	transition: border-color var(--tr);
+}
+.reply-textarea:focus { border-color: var(--accent); }
+.reply-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+.btn-cancel {
+	height: 30px;
+	padding: 0 12px;
+	background: var(--bg-hover);
+	color: var(--text-secondary);
+	border: none;
+	border-radius: 8px;
+	font-size: 12px;
+	font-weight: 500;
+	font-family: inherit;
+	cursor: pointer;
+}
+.btn-submit-sm {
+	height: 30px;
+	padding: 0 12px;
+	background: var(--accent);
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 12px;
+	font-weight: 600;
+	font-family: inherit;
+	cursor: pointer;
+	transition: background var(--tr);
+}
+.btn-submit-sm:hover { background: var(--accent-hover); }
+.btn-submit-sm:disabled { opacity: 0.4; cursor: not-allowed; }
+</style>

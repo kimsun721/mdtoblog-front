@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { PUBLIC_API_URL } from '$env/static/public';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	export let data: { profile: any };
 	const profile = data.profile;
 
@@ -29,7 +30,6 @@
 			const res2 = await fetch(`${PUBLIC_API_URL}/user/${profile.id}/comments`);
 			const result2 = await res2.json();
 			comments = result2.data;
-			console.log(comments, posts);
 		}
 	});
 
@@ -40,104 +40,226 @@
 	<title>{profile?.userName ?? '프로필'} · MdToBlog</title>
 </svelte:head>
 
-<main class="min-h-screen" style="background: var(--bg);">
-	{#if !profile}
-		<div class="flex min-h-[60vh] items-center justify-center px-5">
-			<p class="text-sm" style="color: var(--text-secondary);">존재하지 않는 유저입니다.</p>
-		</div>
-	{:else}
-		<div class="mx-auto max-w-5xl px-6 py-12 sm:px-10">
-			<!-- Profile card -->
-			<div class="mb-8 rounded-2xl border p-7" style="background: var(--bg-surface); border-color: var(--border);">
-				<div class="flex items-center gap-5">
-					<div class="relative flex-shrink-0">
-						<img
-							src={`https://avatars.githubusercontent.com/u/${profile.githubId}`}
-							alt="프로필"
-							class="h-16 w-16 rounded-full border-2"
-							style="border-color: var(--border);"
-						/>
-						<div class="absolute right-0 bottom-0 h-3.5 w-3.5 rounded-full border-2 bg-emerald-400" style="border-color: var(--bg-surface);"></div>
+{#if !profile}
+	<div class="empty-wrap">
+		<p>존재하지 않는 유저입니다.</p>
+	</div>
+{:else}
+	<div class="profile-body">
+		<!-- Profile card -->
+		<div class="profile-card">
+			<div class="profile-avatar-wrap">
+				<img
+					class="profile-avatar"
+					src={`https://avatars.githubusercontent.com/u/${profile.githubId}`}
+					alt="프로필"
+				/>
+				<div class="profile-online"></div>
+			</div>
+			<div>
+				<div class="profile-username">{profile.userName}</div>
+				<div class="profile-email">{profile.email}</div>
+				<div class="profile-stats">
+					<div>
+						<div class="profile-stat-num">{posts.length}</div>
+						<div class="profile-stat-label">포스트</div>
 					</div>
 					<div>
-						<h1 class="text-lg font-semibold" style="color: var(--text);">{profile.userName}</h1>
-						<p class="mt-0.5 text-sm" style="color: var(--text-muted);">{profile.email}</p>
-						<div class="mt-3 flex gap-5 text-xs" style="color: var(--text-muted);">
-							<span><span class="font-semibold" style="color: var(--text);">{posts.length}</span> 글</span>
-							<span><span class="font-semibold" style="color: var(--text);">{comments.length}</span> 댓글</span>
-						</div>
+						<div class="profile-stat-num">{comments.length}</div>
+						<div class="profile-stat-label">댓글</div>
 					</div>
 				</div>
 			</div>
-
-			<!-- Tabs -->
-			<div class="mb-6 flex gap-1 rounded-xl p-1" style="background: var(--bg-surface); border: 1px solid var(--border);">
-				<button
-					class="cursor-pointer flex-1 rounded-lg py-2 text-sm font-medium transition"
-					style={activeTab === 'posts'
-						? 'background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08);'
-						: 'color: var(--text-muted);'}
-					on:click={() => (activeTab = 'posts')}
-				>
-					내 글
-				</button>
-				<button
-					class="cursor-pointer flex-1 rounded-lg py-2 text-sm font-medium transition"
-					style={activeTab === 'comments'
-						? 'background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08);'
-						: 'color: var(--text-muted);'}
-					on:click={() => (activeTab = 'comments')}
-				>
-					내 댓글
-				</button>
-			</div>
-
-			<!-- Content -->
-			{#if activeTab === 'posts'}
-				{#if posts.length > 0}
-					<div class="space-y-3">
-						{#each posts as post}
-							<a href={`/post/${post.id}`} class="cursor-pointer group block rounded-xl border p-5 transition-all duration-150 hover:shadow-md" style="background: var(--bg-surface); border-color: var(--border);">
-								<h3 class="mb-2 text-[15px] font-medium leading-snug transition group-hover:opacity-60" style="color: var(--text);">
-									{post.title}
-								</h3>
-								<div class="flex items-center gap-3 text-xs" style="color: var(--text-muted);">
-									<span class="flex items-center gap-1">
-										<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-										</svg>
-										{post.views ?? 0}
-									</span>
-									<span class="flex items-center gap-1">
-										<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-										</svg>
-										{post.likeCount ?? 0}
-									</span>
-								</div>
-							</a>
-						{/each}
-					</div>
-				{:else}
-					<div class="rounded-2xl border py-16 text-center" style="background: var(--bg-surface); border-color: var(--border);">
-						<p class="text-sm" style="color: var(--text-muted);">작성한 글이 없습니다.</p>
-					</div>
-				{/if}
-			{:else if comments.length > 0}
-				<div class="space-y-3">
-					{#each comments as comment}
-						<a href={`/post/${comment.post.id}`} class="cursor-pointer group block rounded-xl border p-5 transition-all duration-150 hover:shadow-md" style="background: var(--bg-surface); border-color: var(--border);">
-							<p class="mb-2 text-sm leading-relaxed" style="color: var(--text-secondary);">{comment.content}</p>
-							<p class="text-xs transition group-hover:opacity-60" style="color: var(--text-muted);">{comment.post.title}</p>
-						</a>
-					{/each}
-				</div>
-			{:else}
-				<div class="rounded-2xl border py-16 text-center" style="background: var(--bg-surface); border-color: var(--border);">
-					<p class="text-sm" style="color: var(--text-muted);">작성한 댓글이 없습니다.</p>
-				</div>
-			{/if}
 		</div>
-	{/if}
-</main>
+
+		<!-- Tabs -->
+		<div class="profile-tabs">
+			<button
+				class="profile-tab"
+				class:active={activeTab === 'posts'}
+				onclick={() => (activeTab = 'posts')}
+			>내 글</button>
+			<button
+				class="profile-tab"
+				class:active={activeTab === 'comments'}
+				onclick={() => (activeTab = 'comments')}
+			>내 댓글</button>
+		</div>
+
+		<!-- Posts -->
+		{#if activeTab === 'posts'}
+			{#if posts.length > 0}
+				{#each posts as post}
+					<button class="profile-post-item" onclick={() => goto(`/post/${post.id}`)}>
+						<div style="flex:1">
+							<div class="profile-post-title">{post.title}</div>
+							<div class="profile-post-stats">
+								<span class="profile-post-stat">
+									<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+										<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+									</svg>
+									{post.views ?? 0}
+								</span>
+								<span class="profile-post-stat">
+									<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+										<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+									</svg>
+									{post.likeCount ?? 0}
+								</span>
+							</div>
+						</div>
+					</button>
+				{/each}
+			{:else}
+				<div class="empty-tab">아직 작성한 글이 없어요</div>
+			{/if}
+
+		<!-- Comments -->
+		{:else if activeTab === 'comments'}
+			{#if comments.length > 0}
+				{#each comments as comment}
+					<button class="profile-comment-item" onclick={() => goto(`/post/${comment.post.id}`)}>
+						<div class="profile-comment-post-title">📄 {comment.post.title}</div>
+						<div class="profile-comment-content">{comment.content}</div>
+					</button>
+				{/each}
+			{:else}
+				<div class="empty-tab">아직 작성한 댓글이 없어요</div>
+			{/if}
+		{/if}
+	</div>
+{/if}
+
+<style>
+.empty-wrap {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 60vh;
+	font-size: 14px;
+	color: var(--text-secondary);
+}
+
+.profile-body {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 40px 24px 60px;
+}
+
+.profile-card {
+	background: var(--bg-surface);
+	border: 1px solid var(--border);
+	border-radius: var(--r-xl);
+	padding: 28px;
+	margin-bottom: 24px;
+	display: flex;
+	align-items: center;
+	gap: 20px;
+}
+.profile-avatar-wrap { position: relative; flex-shrink: 0; }
+.profile-avatar {
+	width: 72px;
+	height: 72px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 3px solid var(--border);
+}
+.profile-online {
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #22c55e;
+	border: 3px solid var(--bg-surface);
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+}
+.profile-username { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 3px; }
+.profile-email { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+.profile-stats { display: flex; gap: 20px; }
+.profile-stat-num { font-size: 18px; font-weight: 700; }
+.profile-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+.profile-tabs {
+	display: flex;
+	gap: 2px;
+	background: var(--bg-surface);
+	border-radius: 12px;
+	padding: 3px;
+	border: 1px solid var(--border);
+	margin-bottom: 18px;
+}
+.profile-tab {
+	flex: 1;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 13px;
+	font-weight: 500;
+	border-radius: 9px;
+	cursor: pointer;
+	color: var(--text-muted);
+	transition: all var(--tr);
+	border: none;
+	background: transparent;
+	font-family: inherit;
+}
+.profile-tab.active {
+	background: var(--bg);
+	color: var(--text);
+	font-weight: 600;
+	box-shadow: var(--sh-xs);
+}
+
+.profile-post-item {
+	background: var(--bg-surface);
+	border: 1px solid var(--border);
+	border-radius: var(--r-md);
+	padding: 16px 18px;
+	margin-bottom: 8px;
+	cursor: pointer;
+	transition: box-shadow var(--tr), transform var(--tr);
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	width: 100%;
+	font-family: inherit;
+	text-align: left;
+}
+.profile-post-item:hover { box-shadow: var(--sh-xs); transform: translateY(-1px); }
+.profile-post-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; flex: 1; line-height: 1.4; color: var(--text); }
+.profile-post-stats { display: flex; gap: 10px; }
+.profile-post-stat { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 3px; }
+
+.profile-comment-item {
+	background: var(--bg-surface);
+	border: 1px solid var(--border);
+	border-radius: var(--r-md);
+	padding: 14px 18px;
+	margin-bottom: 8px;
+	cursor: pointer;
+	transition: box-shadow var(--tr);
+	width: 100%;
+	font-family: inherit;
+	text-align: left;
+}
+.profile-comment-item:hover { box-shadow: var(--sh-xs); }
+.profile-comment-post-title { font-size: 12px; color: var(--accent); font-weight: 500; margin-bottom: 5px; }
+.profile-comment-content {
+	font-size: 14px;
+	color: var(--text-secondary);
+	line-height: 1.55;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.empty-tab {
+	padding: 40px;
+	text-align: center;
+	color: var(--text-muted);
+	font-size: 14px;
+}
+</style>

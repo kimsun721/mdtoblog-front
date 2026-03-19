@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { accessToken } from '$lib/auth';
 	import { api } from '$lib/services/api';
 	import type { Post } from '$lib/types/post';
@@ -7,10 +8,12 @@
 	import PostContent from '$lib/components/PostContent.svelte';
 	import CommentSection from '$lib/components/CommentSection.svelte';
 	import LikeButton from '$lib/components/LikeButton.svelte';
+	import { formatNumber } from '$lib/utils/format';
 
 	let post = $state<Post | null>(null);
 	let isLoading = $state(true);
 	let lastLoadedPostId = $state<string | null>(null);
+	let scrolled = $state(false);
 
 	async function loadPost() {
 		const postId = $page.params.id;
@@ -77,49 +80,179 @@
 			alert('좋아요 처리에 실패했습니다');
 		}
 	}
+
+	function onScroll(e: Event) {
+		const el = e.target as HTMLElement;
+		scrolled = el.scrollTop > 80;
+	}
 </script>
 
 <svelte:head>
 	<title>{post?.title ?? '로딩 중...'} · MdToBlog</title>
 </svelte:head>
 
-<main class="min-h-screen" style="background: var(--bg);">
-	<div class="mx-auto max-w-5xl px-6 py-12 sm:px-10">
-		{#if isLoading}
-			<div class="flex min-h-[60vh] items-center justify-center">
-				<div class="h-5 w-5 animate-spin rounded-full border-2" style="border-color: var(--border); border-top-color: var(--text-secondary);"></div>
-			</div>
-		{:else if post}
-			<!-- Article card -->
-			<div class="rounded-2xl border overflow-hidden" style="background: var(--bg-surface); border-color: var(--border);">
-				<div class="p-7 sm:p-10">
-					<PostHeader {post} />
-					<PostContent content={post.content} />
+<div class="detail-page" onscroll={onScroll} role="main">
+	<!-- Detail nav -->
+	<nav class="detail-nav">
+		<button class="back-btn" onclick={() => goto('/')}>
+			<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+				<path d="M19 12H5M12 5l-7 7 7 7"/>
+			</svg>
+			목록으로
+		</button>
+		<span class="detail-nav-title" class:show={scrolled}>{post?.title ?? ''}</span>
+	</nav>
 
-					<div class="mt-12 flex justify-center border-t pt-10" style="border-color: var(--border-subtle);">
-						<LikeButton liked={post.liked} likeCount={post.likeCount} ontoggle={handleLikeToggle} />
-					</div>
-				</div>
+	{#if isLoading}
+		<div class="loading-wrap">
+			<div class="spinner"></div>
+		</div>
+	{:else if post}
+		<div class="detail-body">
+			<PostHeader {post} />
+			<div class="detail-content">
+				<PostContent content={post.content} />
+			</div>
+		</div>
 
-				<div class="border-t" style="border-color: var(--border); background: var(--bg);">
-					<div class="p-7 sm:p-10">
-						<CommentSection {post} {refreshPost} />
-					</div>
-				</div>
-			</div>
-		{:else}
-			<div class="flex min-h-[60vh] items-center justify-center">
-				<div class="text-center">
-					<p class="text-sm" style="color: var(--text-secondary);">게시글을 불러올 수 없습니다</p>
-					<button
-						onclick={() => window.location.reload()}
-						class="cursor-pointer mt-4 text-xs underline underline-offset-2 transition hover:opacity-60"
-						style="color: var(--text-muted);"
-					>
-						다시 시도
-					</button>
-				</div>
-			</div>
-		{/if}
-	</div>
-</main>
+		<div class="detail-footer">
+			<LikeButton liked={post.liked} likeCount={post.likeCount} ontoggle={handleLikeToggle} />
+			<span class="detail-stat">
+				<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+					<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+				</svg>
+				{formatNumber(post.views ?? 0)}
+			</span>
+			<span class="detail-stat">
+				<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+				</svg>
+				{formatNumber(post.comment?.length ?? 0)}
+			</span>
+		</div>
+
+		<div class="comment-wrapper">
+			<CommentSection {post} {refreshPost} />
+		</div>
+	{:else}
+		<div class="loading-wrap">
+			<p style="font-size:14px;color:var(--text-secondary);">게시글을 불러올 수 없습니다</p>
+			<button class="retry-btn" onclick={() => window.location.reload()}>다시 시도</button>
+		</div>
+	{/if}
+</div>
+
+<style>
+.detail-page {
+	min-height: 100vh;
+	background: var(--bg);
+}
+
+.detail-nav {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: var(--bg-glass);
+	backdrop-filter: blur(20px) saturate(180%);
+	-webkit-backdrop-filter: blur(20px) saturate(180%);
+	border-bottom: 1px solid var(--border);
+	height: 56px;
+	display: flex;
+	align-items: center;
+	padding: 0 24px;
+	gap: 12px;
+}
+.back-btn {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	height: 32px;
+	padding: 0 12px 0 8px;
+	background: var(--bg-hover);
+	border: none;
+	border-radius: 9px;
+	font-size: 13px;
+	font-weight: 500;
+	font-family: inherit;
+	color: var(--text-secondary);
+	cursor: pointer;
+	transition: background var(--tr), color var(--tr);
+	flex-shrink: 0;
+}
+.back-btn:hover { background: var(--border); color: var(--text); }
+.detail-nav-title {
+	font-size: 14px;
+	font-weight: 600;
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	opacity: 0;
+	transition: opacity 0.2s ease;
+	color: var(--text);
+}
+.detail-nav-title.show { opacity: 1; }
+
+.detail-body {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 44px 24px 0;
+}
+.detail-content {
+	font-size: 15px;
+	color: var(--text-secondary);
+	line-height: 1.85;
+	padding-bottom: 32px;
+}
+
+.detail-footer {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 20px 24px;
+	border-top: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.detail-stat {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 13px;
+	color: var(--text-muted);
+}
+
+.comment-wrapper {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 0 24px 60px;
+	border-top: 1px solid var(--border);
+}
+
+.loading-wrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 60vh;
+	gap: 16px;
+}
+.spinner {
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--border);
+	border-top-color: var(--text-muted);
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.retry-btn {
+	font-size: 13px;
+	color: var(--text-muted);
+	background: none;
+	border: none;
+	cursor: pointer;
+	text-decoration: underline;
+	font-family: inherit;
+}
+</style>
