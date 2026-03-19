@@ -74,9 +74,19 @@ class ApiService {
 		});
 	}
 
+	// Stats
+	async getStats() {
+		return this.request('/stats');
+	}
+
+	async getTopUsers(limit = 4) {
+		return this.request(`/users/top?limit=${limit}`);
+	}
+
 	// Posts
-	async getPosts(page: number, limit = 20, signal?: AbortSignal) {
-		return this.request(`/post?page=${page}&limit=${limit}`, { signal });
+	async getPosts(page: number, limit = 20, signal?: AbortSignal, sort?: string) {
+		const sortParam = sort ? `&sort=${sort}` : '';
+		return this.request(`/post?page=${page}&limit=${limit}${sortParam}`, { signal });
 	}
 
 	async getPost(id: number | string) {

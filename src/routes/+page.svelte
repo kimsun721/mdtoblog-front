@@ -7,6 +7,7 @@
 	import type { Post } from '$lib/types/post';
 
 	let posts = $state<Post[]>([]);
+	let trendingPosts = $state<Post[]>([]);
 	let page = $state(1);
 	let sentinel = $state<HTMLElement>();
 	let isLoading = $state(true);
@@ -14,25 +15,17 @@
 	let hasMore = $state(true);
 	let observer: IntersectionObserver | null = null;
 	let fetchAbort: AbortController | null = null;
-	let activeTab = $state<'latest' | 'trending' | 'following'>('latest');
+	let activeTab = $state<'latest' | 'trending'>('latest');
+
+	// 실제 stats
+	let stats = $state({ totalPosts: 0, totalUsers: 0, today: { posts: 0 } });
+
+	// 인기 키워드 (하드코딩)
+	const KEYWORDS = ['Rust', 'TypeScript', 'NestJS', 'WebRTC', 'Redis', 'Docker', 'Svelte', 'Tauri', 'Prisma', 'PostgreSQL', 'AWS', 'Go'];
+
+	let topUsers = $state<Array<{ id: number; userName: string; githubId: number; postCount: number }>>([]);
 
 	const limit = 20;
-
-	// 하드코딩 사이드바 데이터
-	const TAGS = ['Rust', 'TypeScript', 'NestJS', 'WebRTC', 'PostGIS', 'Redis', 'Docker', 'Svelte', 'Tauri', 'Prisma', 'PostgreSQL', 'AWS'];
-	const TRENDS = [
-		{ title: 'Rust + WebRTC SFU 구현기', count: '2.1k 조회' },
-		{ title: '병역특례 포트폴리오 준비법', count: '4.1k 조회' },
-		{ title: 'TypeORM vs Prisma 비교', count: '3.2k 조회' },
-		{ title: 'PostGIS 위치 기반 쿼리', count: '1.6k 조회' },
-		{ title: 'Arch Linux 개발 환경 세팅', count: '980 조회' },
-	];
-	const CONTRIB = [
-		{ name: 'kimsun721', githubId: 9919, posts: 42, medal: '🥇' },
-		{ name: 'devjaeho', githubId: 1024, posts: 31, medal: '🥈' },
-		{ name: 'rustacean_kr', githubId: 583231, posts: 28, medal: '🥉' },
-		{ name: 'ts_wizard', githubId: 7890, posts: 19, medal: '' },
-	];
 
 	async function fetchPosts(reset = false) {
 		if (isFetchingMore || (!hasMore && !reset)) return;
@@ -42,7 +35,7 @@
 		fetchAbort = new AbortController();
 
 		try {
-			const result: any = await api.getPosts(reset ? 1 : page, limit, fetchAbort.signal);
+			const result: any = await api.getPosts(reset ? 1 : page, limit, fetchAbort.signal, 'created_at');
 			const list: Post[] = result?.data || [];
 
 			if (list.length === 0) {
@@ -67,11 +60,38 @@
 		}
 	}
 
+	async function fetchTrending() {
+		try {
+			const result: any = await api.getPosts(1, 5, undefined, 'views');
+			trendingPosts = result?.data || [];
+		} catch (e) {
+			console.error('Failed to fetch trending:', e);
+		}
+	}
+
+	async function fetchStats() {
+		try {
+			const result: any = await api.getStats();
+			stats = result;
+		} catch (e) {
+			// 실패해도 기본값 유지
+		}
+	}
+
+	async function fetchTopUsers() {
+		try {
+			const result: any = await api.getTopUsers(4);
+			topUsers = result?.data || [];
+		} catch (e) {
+			console.error('Failed to fetch top users:', e);
+		}
+	}
+
 	function setupObserver() {
 		if (!sentinel) return;
 		observer?.disconnect();
 		observer = new IntersectionObserver(
-			(entries) => { if (entries[0].isIntersecting) fetchPosts(); },
+			(entries) => { if (entries[0].isIntersecting && activeTab === 'latest') fetchPosts(); },
 			{ root: null, rootMargin: '200px', threshold: 0.1 }
 		);
 		observer.observe(sentinel);
@@ -82,23 +102,11 @@
 		return plainText.length > 160 ? plainText.slice(0, 160) + '…' : plainText;
 	}
 
-	function setTab(tab: 'latest' | 'trending' | 'following') {
-		activeTab = tab;
-	}
-
-	const tabLabel = $derived(
-		activeTab === 'latest' ? '최신 포스트' :
-		activeTab === 'trending' ? '인기 포스트' : '팔로잉 포스트'
-	);
-
-	const displayedPosts = $derived(
-		activeTab === 'trending'
-			? [...posts].sort((a, b) => (b.views ?? 0) - (a.views ?? 0))
-			: posts
-	);
+	const tabLabel = $derived(activeTab === 'latest' ? '최신 포스트' : '인기 포스트');
+	const displayedPosts = $derived(activeTab === 'trending' ? trendingPosts : posts);
 
 	onMount(async () => {
-		await fetchPosts(true);
+		await Promise.all([fetchPosts(true), fetchTrending(), fetchStats(), fetchTopUsers()]);
 		setupObserver();
 	});
 
@@ -121,15 +129,15 @@
 			<div class="hero-sub">레포를 연결하면 자동으로 포스트가 생성돼요</div>
 			<div class="hero-stats">
 				<div>
-					<div class="hero-stat-num">2,841</div>
+					<div class="hero-stat-num">{stats.totalPosts.toLocaleString()}</div>
 					<div class="hero-stat-label">전체 포스트</div>
 				</div>
 				<div>
-					<div class="hero-stat-num">438</div>
+					<div class="hero-stat-num">{stats.totalUsers.toLocaleString()}</div>
 					<div class="hero-stat-label">개발자</div>
 				</div>
 				<div>
-					<div class="hero-stat-num">127</div>
+					<div class="hero-stat-num">{stats.today.posts}</div>
 					<div class="hero-stat-label">오늘 업데이트</div>
 				</div>
 			</div>
@@ -137,9 +145,8 @@
 
 		<!-- Tabs -->
 		<div class="tabs">
-			<button class="tab" class:active={activeTab === 'latest'} onclick={() => setTab('latest')}>최신 글</button>
-			<button class="tab" class:active={activeTab === 'trending'} onclick={() => setTab('trending')}>인기 글</button>
-			<button class="tab" class:active={activeTab === 'following'} onclick={() => setTab('following')}>팔로잉</button>
+			<button class="tab" class:active={activeTab === 'latest'} onclick={() => activeTab = 'latest'}>최신 글</button>
+			<button class="tab" class:active={activeTab === 'trending'} onclick={() => activeTab = 'trending'}>인기 글</button>
 		</div>
 
 		<!-- Section header -->
@@ -211,14 +218,16 @@
 				{/each}
 			</div>
 
-			{#if isFetchingMore}
-				<div style="display:flex;justify-content:center;padding:16px;">
-					<div style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text-muted);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-				</div>
-			{:else if hasMore}
-				<button class="load-more-btn" onclick={() => fetchPosts()}>더 보기</button>
-			{:else if posts.length > 0}
-				<div style="text-align:center;padding:16px;font-size:12px;color:var(--text-faint);">모든 글을 불러왔습니다</div>
+			{#if activeTab === 'latest'}
+				{#if isFetchingMore}
+					<div style="display:flex;justify-content:center;padding:16px;">
+						<div style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--text-muted);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+					</div>
+				{:else if hasMore}
+					<button class="load-more-btn" onclick={() => fetchPosts()}>더 보기</button>
+				{:else if posts.length > 0}
+					<div style="text-align:center;padding:16px;font-size:12px;color:var(--text-faint);">모든 글을 불러왔습니다</div>
+				{/if}
 			{/if}
 		{/if}
 	</main>
@@ -238,10 +247,10 @@
 		</div>
 
 		<div class="sidebar-card">
-			<div class="sidebar-title">🔥 인기 태그</div>
+			<div class="sidebar-title">🔍 인기 키워드</div>
 			<div class="tag-cloud">
-				{#each TAGS as tag}
-					<button class="tag-cloud-item" onclick={() => goto(`/search?q=${encodeURIComponent(tag)}`)}>{tag}</button>
+				{#each KEYWORDS as kw}
+					<button class="tag-cloud-item" onclick={() => goto(`/search?q=${encodeURIComponent(kw)}`)}>{kw}</button>
 				{/each}
 			</div>
 		</div>
@@ -249,29 +258,38 @@
 		<div class="sidebar-card">
 			<div class="sidebar-title">📈 인기 포스트 TOP 5</div>
 			<div class="trend-list">
-				{#each TRENDS as trend, i}
-					<div class="trend-item">
-						<span class="trend-rank">{i + 1}</span>
-						<span class="trend-text">{trend.title}</span>
-						<span class="trend-count">{trend.count}</span>
-					</div>
-				{/each}
+				{#if trendingPosts.length === 0}
+					<div style="font-size:12px;color:var(--text-faint);padding:8px 0;">불러오는 중...</div>
+				{:else}
+					{#each trendingPosts as post, i}
+						<button class="trend-item" onclick={() => goto(`/post/${post.id}`)}>
+							<span class="trend-rank">{i + 1}</span>
+							<span class="trend-text">{post.title}</span>
+							<span class="trend-count">{formatNumber(post.views ?? 0)} 조회</span>
+						</button>
+					{/each}
+				{/if}
 			</div>
 		</div>
-
 		<div class="sidebar-card">
 			<div class="sidebar-title">✨ 활발한 개발자</div>
 			<div class="contrib-list">
-				{#each CONTRIB as user}
-					<button class="contrib-item" onclick={() => goto(`/user/${user.githubId}`)}>
-						<img class="contrib-avatar-img" src={`https://avatars.githubusercontent.com/u/${user.githubId}?s=72`} alt={user.name} />
-						<div>
-							<div class="contrib-name">{user.name}</div>
-							<div class="contrib-count">{user.posts} 포스트</div>
-						</div>
-						{#if user.medal}<span class="contrib-badge">{user.medal}</span>{/if}
-					</button>
-				{/each}
+				{#if topUsers.length === 0}
+					<div style="font-size:12px;color:var(--text-faint);padding:8px 0;">불러오는 중...</div>
+				{:else}
+					{#each topUsers as user, i}
+						<button class="contrib-item" onclick={() => goto(`/user/${user.id}`)}>
+							<img class="contrib-avatar-img" src={`https://avatars.githubusercontent.com/u/${user.githubId}?s=72`} alt={user.userName} />
+							<div>
+								<div class="contrib-name">{user.userName}</div>
+								<div class="contrib-count">{user.postCount} 포스트</div>
+							</div>
+							{#if i === 0}<span class="contrib-badge">🥇</span>
+							{:else if i === 1}<span class="contrib-badge">🥈</span>
+							{:else if i === 2}<span class="contrib-badge">🥉</span>{/if}
+						</button>
+					{/each}
+				{/if}
 			</div>
 		</div>
 	</aside>
@@ -489,11 +507,21 @@
 	padding: 9px 0;
 	border-bottom: 1px solid var(--border-subtle);
 	transition: opacity var(--tr);
+	background: none;
+	border-left: none;
+	border-right: none;
+	border-top: none;
+	font-family: inherit;
+	text-align: left;
+	width: 100%;
+	cursor: pointer;
 }
 .trend-item:last-child { border-bottom: none; }
+.trend-item:hover { opacity: 0.65; }
 .trend-rank { font-size: 12px; font-weight: 700; color: var(--accent); width: 14px; text-align: center; flex-shrink: 0; }
 .trend-text { font-size: 13px; font-weight: 500; flex: 1; line-height: 1.35; }
 .trend-count { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
 .contrib-list { display: flex; flex-direction: column; gap: 9px; }
 .contrib-item {
 	display: flex;
