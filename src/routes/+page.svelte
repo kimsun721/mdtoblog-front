@@ -28,10 +28,12 @@
 	const limit = 20;
 
 	async function fetchPosts(reset = false) {
-		if (isFetchingMore || (!hasMore && !reset)) return;
+		if (!reset && (isFetchingMore || !hasMore)) return;
 
+		if (reset) {
+			fetchAbort?.abort();
+		}
 		isFetchingMore = true;
-		fetchAbort?.abort();
 		fetchAbort = new AbortController();
 
 		try {
@@ -72,7 +74,9 @@
 	async function fetchStats() {
 		try {
 			const result: any = await api.getStats();
-			stats = result;
+			// 응답이 { statusCode, data: {...} } 래핑인 경우 대응
+			const data = result?.data ?? result;
+			if (data?.totalPosts !== undefined) stats = data;
 		} catch (e) {
 			// 실패해도 기본값 유지
 		}
