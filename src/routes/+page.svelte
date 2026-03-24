@@ -81,7 +81,7 @@
 	async function fetchTopUsers() {
 		try {
 			const result: any = await api.getTopUsers(4);
-			topUsers = result?.data || [];
+			topUsers = result?.data?.data || [];
 		} catch (e) {
 			console.error('Failed to fetch top users:', e);
 		}

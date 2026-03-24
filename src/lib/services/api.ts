@@ -80,7 +80,7 @@ class ApiService {
 	}
 
 	async getTopUsers(limit = 4) {
-		return this.request(`/users/top?limit=${limit}`);
+		return this.request(`/user/top?limit=${limit}`);
 	}
 
 	// Posts
